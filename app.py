@@ -94,6 +94,12 @@ def load_projects():
     return projects
 
 
+def list_project_ids(user):
+    """Lists all project IDs."""
+    projects = load_projects()
+    return [project['id'] for project in projects if project['owner_id'] == user['id']]
+
+
 def save_projects(projects):
     """Saves the projects data to the text file."""
     with open(PROJECTS_FILE, 'w') as file:
@@ -117,7 +123,7 @@ def validate_date(date_str):
 
 def register():
     """Registers a new user."""
-    yellow("Registration")
+    magenta("Registration")
     first_name = input("First name: ")
     last_name = input("Last name: ")
     email = input("Email: ")
@@ -175,7 +181,7 @@ def register():
 
 def login():
     """Logs in a user."""
-    yellow("Login")
+    magenta("Login")
     email = input("Email: ")
     password = getpass("Password: ")
 
@@ -194,7 +200,7 @@ def login():
 
 def create_project(user):
     """Creates a new project."""
-    yellow("Create project")
+    magenta("Create project")
 
     title = input("Title: ")
     details = input("Details: ")
@@ -257,7 +263,7 @@ def view_projects():
     """Displays all projects."""
     projects = load_projects()
     if projects:
-        print("Projects")
+        magenta("Projects")
         prettytable = PrettyTable()
         prettytable.field_names = ["ID", "Title", "Details", "Total target", "Start time", "End time", "Owner"]
         for project in projects:
@@ -277,18 +283,15 @@ def view_projects():
         red("No projects found.")
 
 
-def list_project_ids(user):
-    """Lists all project IDs."""
-    projects = load_projects()
-    return [project['id'] for project in projects if project['owner_id'] == user['id']]
-
-
 def edit_project(user):
     """Edits an existing project."""
-    yellow("Edit project")
+    magenta("Edit project")
 
     # Find project by ID
     ids = list_project_ids(user)
+    if not ids:
+        red("You do not have any projects to edit.")
+        return
     project_id = input(f"Project ID {ids}: ")
     projects = load_projects()
     project_index = next((i for i, project in enumerate(load_projects()) if project['id'] == int(project_id)), None)
@@ -353,22 +356,28 @@ def edit_project(user):
 
 def delete_project(user):
     """Deletes an existing project."""
-    yellow("Delete project")
+    magenta("Delete project")
 
     # Find project by ID
-    project_id = input("Project ID: ")
-    project = next((project for project in load_projects() if project['id'] == int(project_id)), None)
+    ids = list_project_ids(user)
+    if not ids:
+        red("You do not have any projects to delete.")
+        return
+    project_id = input(f"Project ID {ids}: ")
+    projects = load_projects()
+    project_index = next((i for i, project in enumerate(load_projects()) if project['id'] == int(project_id)), None)
+    project = projects[project_index]
 
     if not project:
-        print("Project not found.")
+        red("Project not found.")
         return
 
     if project['owner_id'] != user['id']:
-        print("You do not have permission to delete this project.")
+        red("You do not have permission to delete this project.")
         return
 
-    load_projects().remove(project)
-    save_projects(load_projects())
+    projects.remove(project)
+    save_projects(projects)
 
     green("Project deleted successfully.")
     return True
@@ -376,7 +385,7 @@ def delete_project(user):
 
 def search_project():
     """Searches for a project by start/end time."""
-    yellow("Search project")
+    magenta("Search project")
 
     start_time_str = input("Start time (required): ")
     end_time_str = input("End time (optional): ")
@@ -411,7 +420,7 @@ current_user = None
 # Main loop
 while True:
     clear()
-    cyan("Welcome to Fundraise!")
+    cyan("Welcome to Crowd-Funding console app!")
     if not current_user:
         yellow("1. Register")
         yellow("2. Login")
@@ -459,8 +468,8 @@ while True:
         elif choice == '7':
             search_project()
         elif choice == '8':
-            print("Thank you for using Fundraise!")
+            yellow("Thank you for using Crowd-Funding console app!")
             break
         else:
-            print("Invalid choice. Please try again.")
+            red("Invalid choice. Please try again.")
     os.system('pause')
