@@ -98,6 +98,7 @@ def save_projects(projects):
     """Saves the projects data to the text file."""
     with open(PROJECTS_FILE, 'w') as file:
         for project in projects:
+            print(project)
             file.write(f"{project['id']},{project['title']},{project['details']},"
                        f"{project['target']},{project['start_time'].isoformat()},"
                        f"{project['end_time'].isoformat()},{project['owner_id']}\n")
@@ -289,7 +290,9 @@ def edit_project(user):
     # Find project by ID
     ids = list_project_ids(user)
     project_id = input(f"Project ID {ids}: ")
-    project = next((project for project in load_projects() if project['id'] == int(project_id)), None)
+    projects = load_projects()
+    project_index = next((i for i, project in enumerate(load_projects()) if project['id'] == int(project_id)), None)
+    project = projects[project_index]
 
     if not project:
         red("Project not found.")
@@ -341,7 +344,9 @@ def edit_project(user):
         for error in errors:
             print(f"- {error}")
     else:
-        save_projects(load_projects())
+        # Update project in file
+        projects[project_index] = project
+        save_projects(projects)
         green("Project updated successfully.")
         return True
 
